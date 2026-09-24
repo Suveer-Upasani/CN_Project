@@ -1,0 +1,6 @@
+# PortSentinel - Phase 1 Dependencies
+# Phase 1 relies primarily on Python standard libraries for core orchestration.
+# The dependencies below are for testing and development.
+
+pytest>=7.4.0
+pytest-cov>=4.1.0
