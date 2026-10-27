@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}PortSentinel — Network Reconnaissance & Analysis{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" role="navigation" aria-label="Main Navigation">
+      <div class="brand-section">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">PortSentinel</span>
+          <span class="brand-subtitle">RECON ENGINE v1.0</span>
+        </div>
+      </div>
+
+      <ul class="nav-links">
+        <li>
+          <a href="{{ url_for('pages.dashboard') }}" class="nav-link {% if request.endpoint == 'pages.dashboard' %}active{% endif %}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="9"/>
+              <rect x="14" y="3" width="7" height="5"/>
+              <rect x="14" y="12" width="7" height="9"/>
+              <rect x="3" y="16" width="7" height="5"/>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('pages.dashboard') }}#new-scan" class="nav-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            <span>New Scan</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('pages.history') }}" class="nav-link {% if request.endpoint == 'pages.history' and not active_tab %}active{% endif %}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span>Scan History</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('pages.reports_page') }}" class="nav-link {% if active_tab == 'reports' %}active{% endif %}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <span>Reports</span>
+          </a>
+        </li>
+
+        <!-- Phase 2 Placeholders (Explicitly marked as Upcoming) -->
+        <li>
+          <a href="#" class="nav-link" style="opacity: 0.6; cursor: not-allowed;" onclick="return false;" title="Phase 2 Feature">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="2"/>
+              <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/>
+            </svg>
+            <span>Subnet Scan</span>
+            <span class="nav-badge upcoming">Phase 2</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link" style="opacity: 0.6; cursor: not-allowed;" onclick="return false;" title="Phase 2 Feature">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 3 21 3 21 8"/>
+              <line x1="4" y1="20" x2="21" y2="3"/>
+              <polyline points="21 16 21 21 16 21"/>
+              <line x1="15" y1="15" x2="21" y2="21"/>
+              <line x1="4" y1="4" x2="9" y2="9"/>
+            </svg>
+            <span>Diff Engine</span>
+            <span class="nav-badge upcoming">Phase 2</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="engine-status-pill">
+          <span class="status-dot"></span>
+          <span>Nmap Engine Active</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      <header class="top-bar">
+        <div class="page-headline">
+          <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+          <p class="page-subtitle">{% block page_subtitle %}Automated Network Reconnaissance & Open-Port Analysis{% endblock %}</p>
+        </div>
+        <div class="top-bar-actions">
+          <a href="{{ url_for('pages.dashboard') }}#new-scan" class="btn btn-primary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>New Scan</span>
+          </a>
+        </div>
+      </header>
+
+      <main class="content-container" role="main">
+        {% block content %}{% endblock %}
+      </main>
+
+      <footer class="app-footer">
+        <div>PortSentinel v1.0 — Phase 1 Flask Reconnaissance Platform</div>
+        <div>Notice: Strictly for authorized security testing and research labs.</div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // Global CSRF helper for AJAX requests
+    window.getCSRFToken = function() {
+      const meta = document.querySelector('meta[name="csrf-token"]');
+      return meta ? meta.getAttribute('content') : '';
+    };
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

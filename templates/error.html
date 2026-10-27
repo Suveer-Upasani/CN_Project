@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block page_title %}Error {{ error_code }}{% endblock %}
+{% block page_subtitle %}{{ title }}{% endblock %}
+
+{% block content %}
+<section class="card" style="max-width: 600px; margin: 40px auto; text-align: center; padding: 48px 32px;">
+  <div style="width: 64px; height: 64px; border-radius: 50%; background-color: var(--status-down-bg); color: var(--status-down); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+  </div>
+
+  <h2 style="font-size: 24px; font-weight: 700; color: var(--text-main); margin-bottom: 10px;">{{ title }}</h2>
+  <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 28px; line-height: 1.6;">
+    {{ message }}
+  </p>
+
+  <div style="display: flex; justify-content: center; gap: 14px;">
+    <a href="{{ url_for('pages.dashboard') }}" class="btn btn-primary">
+      Return to Dashboard
+    </a>
+    <a href="javascript:history.back()" class="btn btn-secondary">
+      Go Back
+    </a>
+  </div>
+</section>
+{% endblock %}

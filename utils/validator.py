@@ -14,6 +14,9 @@ class ValidationResult:
     target: str
     resolved_ip: Optional[str] = None
     is_ip: bool = False
+    is_cidr: bool = False
+    network_str: Optional[str] = None
+    total_hosts: int = 1
     error_message: Optional[str] = None
 
 
@@ -22,24 +25,24 @@ HOSTNAME_REGEX = re.compile(
     r"^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.[A-Za-z0-9-]{1,63})*\.?$"
 )
 
-# Reject unsafe shell or illegal characters
+# Reject unsafe shell or illegal characters (excluding / for CIDR notation)
 DISALLOWED_CHARS = re.compile(r"[\s;`&|$<>!^%*()\"'\[\]{}]")
 
 
 def validate_target(raw_target: str) -> ValidationResult:
-    """Validate target syntax and resolve hostname to IP address.
+    """Validate target syntax and resolve hostname to IP address or validate CIDR range.
 
     Args:
-        raw_target: User-provided IP address or hostname string.
+        raw_target: User-provided IP address, CIDR range, or hostname string.
 
     Returns:
-        ValidationResult containing validation status, resolved IP, or error message.
+        ValidationResult containing validation status, resolved IP / network, or error message.
     """
     if not raw_target or not isinstance(raw_target, str):
         return ValidationResult(
             is_valid=False,
             target="",
-            error_message="Target cannot be empty. Please enter a valid IP address or hostname.",
+            error_message="Target cannot be empty. Please enter a valid IP address, CIDR range, or hostname.",
         )
 
     target = raw_target.strip()
@@ -48,7 +51,7 @@ def validate_target(raw_target: str) -> ValidationResult:
         return ValidationResult(
             is_valid=False,
             target="",
-            error_message="Target cannot be empty. Please enter a valid IP address or hostname.",
+            error_message="Target cannot be empty. Please enter a valid IP address, CIDR range, or hostname.",
         )
 
     if DISALLOWED_CHARS.search(target):
@@ -58,7 +61,35 @@ def validate_target(raw_target: str) -> ValidationResult:
             error_message="Target contains invalid characters or whitespace.",
         )
 
-    # 1. Check if it looks like a 4-part numeric IP address
+    # 1. Check if it is a CIDR network range (e.g. 192.168.1.0/24)
+    if "/" in target:
+        try:
+            net_obj = ipaddress.ip_network(target, strict=False)
+            if net_obj.version != 4:
+                return ValidationResult(
+                    is_valid=False,
+                    target=target,
+                    error_message=f"IPv6 network ranges are not currently supported: '{target}'.",
+                )
+            # Usable host count calculation
+            usable_hosts = net_obj.num_addresses - 2 if net_obj.prefixlen < 31 else net_obj.num_addresses
+            return ValidationResult(
+                is_valid=True,
+                target=target,
+                resolved_ip=str(net_obj.network_address),
+                is_ip=False,
+                is_cidr=True,
+                network_str=str(net_obj),
+                total_hosts=max(1, usable_hosts),
+            )
+        except ValueError as exc:
+            return ValidationResult(
+                is_valid=False,
+                target=target,
+                error_message=f"Invalid network range format: '{target}'. Expected format e.g. 192.168.1.0/24 ({exc})",
+            )
+
+    # 2. Check if it looks like a 4-part numeric IP address
     parts = target.split(".")
     if len(parts) == 4 and all(p.isdigit() for p in parts):
         try:
@@ -68,6 +99,8 @@ def validate_target(raw_target: str) -> ValidationResult:
                 target=target,
                 resolved_ip=str(ip_obj),
                 is_ip=True,
+                is_cidr=False,
+                total_hosts=1,
             )
         except ValueError:
             return ValidationResult(
@@ -84,21 +117,22 @@ def validate_target(raw_target: str) -> ValidationResult:
             target=target,
             resolved_ip=str(ip_obj),
             is_ip=True,
+            is_cidr=False,
+            total_hosts=1,
         )
     except ValueError:
         pass  # Not an IP, proceed to hostname check
 
-    # 2. Check if hostname syntax is valid
+    # 3. Check if hostname syntax is valid
     if not HOSTNAME_REGEX.match(target):
         return ValidationResult(
             is_valid=False,
             target=target,
-            error_message=f"Invalid target format: '{target}'. Please enter a valid IP address or hostname.",
+            error_message=f"Invalid target format: '{target}'. Please enter a valid IP address, CIDR range, or hostname.",
         )
 
-    # 3. Attempt DNS resolution
+    # 4. Attempt DNS resolution
     try:
-        # socket.getaddrinfo handles localhost and DNS hostnames reliably
         addr_info = socket.getaddrinfo(target, None, socket.AF_INET, socket.SOCK_STREAM)
         if not addr_info:
             return ValidationResult(
@@ -112,6 +146,8 @@ def validate_target(raw_target: str) -> ValidationResult:
             target=target,
             resolved_ip=resolved_ip,
             is_ip=False,
+            is_cidr=False,
+            total_hosts=1,
         )
     except (socket.gaierror, socket.herror, socket.timeout) as exc:
         return ValidationResult(

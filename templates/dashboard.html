@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block page_title %}Network Reconnaissance Dashboard{% endblock %}
+{% block page_subtitle %}Live metrics, target scanning controller, and recent activity{% endblock %}
+
+{% block content %}
+<!-- Overview Metric Cards -->
+<section class="metrics-grid" aria-label="Reconnaissance Metrics">
+  <div class="metric-card">
+    <div class="metric-header">
+      <span class="metric-label">Total Scans</span>
+      <div class="metric-icon-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </div>
+    </div>
+    <div class="metric-value">{{ metrics.total_scans }}</div>
+    <div class="metric-meta">Total jobs orchestrated</div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-header">
+      <span class="metric-label">Unique Targets</span>
+      <div class="metric-icon-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+      </div>
+    </div>
+    <div class="metric-value">{{ metrics.unique_targets }}</div>
+    <div class="metric-meta">Distinct IPs / hostnames</div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-header">
+      <span class="metric-label">Hosts Online</span>
+      <div class="metric-icon-wrap" style="background-color: rgba(16, 185, 129, 0.1); color: var(--status-up);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+          <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+          <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+          <line x1="12" y1="20" x2="12.01" y2="20"/>
+        </svg>
+      </div>
+    </div>
+    <div class="metric-value" style="color: var(--status-up);">{{ metrics.hosts_up }}</div>
+    <div class="metric-meta">Discovered responsive (UP)</div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-header">
+      <span class="metric-label">Latest Open Ports</span>
+      <div class="metric-icon-wrap" style="background-color: rgba(14, 165, 233, 0.1); color: var(--status-running);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </div>
+    </div>
+    <div class="metric-value">{{ metrics.latest_open_ports }}</div>
+    <div class="metric-meta">From most recent scan</div>
+  </div>
+</section>
+
+<!-- New Scan Panel -->
+<section id="new-scan" class="card" aria-label="Initiate Network Scan">
+  <div class="card-header">
+    <h2 class="card-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="22" y1="12" x2="18" y2="12"/>
+        <line x1="6" y1="12" x2="2" y2="12"/>
+        <line x1="12" y1="6" x2="12" y2="2"/>
+        <line x1="12" y1="22" x2="12" y2="18"/>
+      </svg>
+      <span>Initiate Individual Host Reconnaissance</span>
+    </h2>
+    <span class="badge badge-queued" id="concurrency-pill">Concurrency: {{ active_count }}/2</span>
+  </div>
+
+  <form id="scan-form" novalidate>
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+      <div class="form-group">
+        <label for="target-input" class="form-label">Target IP Address or Hostname <span style="color: var(--accent-cyan);">*</span></label>
+        <input 
+          type="text" 
+          id="target-input" 
+          name="target" 
+          class="input-text" 
+          placeholder="e.g. 192.168.1.1, 192.168.1.10, 10.0.0.1, localhost" 
+          required 
+          autocomplete="off"
+        >
+        <div class="input-hint">Scans individual hosts reachable via LAN or loopback. Private IPs on your local subnet are fully supported.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="ports-input" class="form-label">Port Range <span style="color: var(--text-dim);">(Optional)</span></label>
+        <input 
+          type="text" 
+          id="ports-input" 
+          name="ports" 
+          class="input-text" 
+          placeholder="e.g. 22,80,443 or 1-1024"
+        >
+        <div class="input-hint">Leave blank to scan Nmap top 1000 TCP ports.</div>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top: 4px;">
+      <label class="checkbox-label">
+        <input type="checkbox" id="auth-confirm" name="authorized" class="checkbox-input" required>
+        <span>
+          <strong>Authorization Confirmation:</strong> I confirm that I own this target system or have explicit written authorization to perform network reconnaissance on this IP / hostname.
+        </span>
+      </label>
+    </div>
+
+    <!-- Inline Validation & Error Box -->
+    <div id="form-error" class="callout callout-error" style="display: none; margin-bottom: 16px;" role="alert"></div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+      <button type="submit" id="start-scan-btn" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <span>Start Scan</span>
+      </button>
+      <span class="text-dim" style="font-size: 12px;">Subprocess timeout configured to 300s per phase.</span>
+    </div>
+  </form>
+
+  <!-- Live Progress Card (Visible during scan) -->
+  <div id="live-scan-container" class="live-progress-box" style="display: none;" aria-live="polite">
+    <div class="live-progress-header">
+      <div class="live-phase-display">
+        <span class="spinner" id="scan-spinner"></span>
+        <span id="live-phase-text">Initializing scan...</span>
+      </div>
+      <div>
+        <span class="badge badge-running" id="live-status-badge">RUNNING</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 24px; font-size: 13px; color: var(--text-muted); font-family: var(--font-mono);">
+      <div>Target: <strong id="live-target-display" style="color: var(--text-main);">-</strong></div>
+      <div>Resolved: <strong id="live-ip-display" style="color: var(--text-main);">-</strong></div>
+      <div>Elapsed: <strong id="live-elapsed-display" style="color: var(--text-main);">0.0s</strong></div>
+    </div>
+    <div id="live-actions" style="display: flex; gap: 12px; margin-top: 6px;">
+      <a id="live-details-link" href="#" class="btn btn-secondary btn-sm">Inspect Live Scan Details &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- Recent Scan Activity & Reports Grid -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+  <!-- Recent Scans Table -->
+  <section class="card" aria-label="Recent Reconnaissance Activity">
+    <div class="card-header">
+      <h2 class="card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>Recent Reconnaissance Scans</span>
+      </h2>
+      <a href="{{ url_for('pages.history') }}" class="btn btn-secondary btn-sm">View All History</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="data-table" id="recent-scans-table">
+        <thead>
+          <tr>
+            <th>Target</th>
+            <th>Resolved IP</th>
+            <th>Host</th>
+            <th>Open Ports</th>
+            <th>Duration</th>
+            <th>Date / Time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="recent-scans-tbody">
+          {% if recent_scans %}
+            {% for s in recent_scans %}
+            <tr>
+              <td><strong class="mono-cell">{{ s.target }}</strong></td>
+              <td class="mono-cell text-muted">{{ s.resolved_ip or '-' }}</td>
+              <td>
+                {% if s.status == 'completed' %}
+                  {% if s.host_status == 'up' %}
+                    <span class="badge badge-up">UP</span>
+                  {% else %}
+                    <span class="badge badge-down">{{ s.host_status|upper }}</span>
+                  {% endif %}
+                {% elif s.status == 'running' %}
+                  <span class="badge badge-running">RUNNING</span>
+                {% elif s.status == 'queued' %}
+                  <span class="badge badge-queued">QUEUED</span>
+                {% else %}
+                  <span class="badge badge-failed">FAILED</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if s.status == 'completed' and s.host_status == 'up' %}
+                  <span class="badge badge-category" style="color: var(--accent-cyan); font-weight: 700;">{{ s.open_ports_count }}</span>
+                {% else %}
+                  <span class="text-dim">-</span>
+                {% endif %}
+              </td>
+              <td class="mono-cell">{{ "%.1f"|format(s.duration) }}s</td>
+              <td class="text-muted" style="font-size: 12px;">{{ s.created_at }}</td>
+              <td>
+                <a href="{{ url_for('pages.scan_details', scan_id=s.scan_id) }}" class="btn btn-secondary btn-sm" style="padding: 4px 10px;">Inspect</a>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7">
+                <div class="empty-state">
+                  <div class="empty-state-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                  </div>
+                  <p>No scans performed yet.</p>
+                  <p style="font-size: 12px;">Enter an IP or hostname above to launch your first scan.</p>
+                </div>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Recent Reports Card -->
+  <section class="card" aria-label="Generated Reports">
+    <div class="card-header">
+      <h2 class="card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <span>Generated Reports</span>
+      </h2>
+    </div>
+
+    {% if recent_reports %}
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for r in recent_reports %}
+          <div style="padding: 12px; background-color: var(--bg-surface-elevated); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong class="mono-cell" style="font-size: 13px;">{{ r.target }}</strong>
+              <span class="text-dim" style="font-size: 11px;">{{ r.created_at }}</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              {% if r.has_txt %}
+                <a href="{{ url_for('pages.download_report', scan_id=r.scan_id, format='txt') }}" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px;">
+                  Text (.txt)
+                </a>
+              {% endif %}
+              {% if r.has_json %}
+                <a href="{{ url_for('pages.download_report', scan_id=r.scan_id, format='json') }}" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px;">
+                  JSON (.json)
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state" style="padding: 24px;">
+        <p style="font-size: 12.5px;">No reports generated yet.</p>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

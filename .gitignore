@@ -47,3 +47,10 @@ output/*.txt
 output/*.json
 !output/.gitkeep
 !logs/.gitkeep
+
+# Data & SQLite
+data/*.db
+data/*.sqlite
+!data/.gitkeep
+instance/
+

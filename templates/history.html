@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block page_title %}Reconnaissance Scan History{% endblock %}
+{% block page_subtitle %}Audit trail of all executed scans, historical findings, and generated reports{% endblock %}
+
+{% block content %}
+<section class="card" aria-label="Scan History Log">
+  <div class="card-header">
+    <h2 class="card-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span>Historical Reconnaissance Runs</span>
+    </h2>
+
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <input 
+        type="text" 
+        id="history-search" 
+        class="input-text" 
+        placeholder="Search target, IP, or status..." 
+        style="width: 280px; padding: 6px 12px; font-size: 13px;"
+      >
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table" id="history-table">
+      <thead>
+        <tr>
+          <th>Scan ID</th>
+          <th>Target</th>
+          <th>Resolved IP</th>
+          <th>Host Status</th>
+          <th>Open Ports</th>
+          <th>Duration</th>
+          <th>Date / Time</th>
+          <th>Reports</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="history-tbody">
+        {% if scans %}
+          {% for s in scans %}
+          <tr>
+            <td class="mono-cell" style="font-size: 12px; color: var(--text-dim);">{{ s.scan_id }}</td>
+            <td><strong class="mono-cell">{{ s.target }}</strong></td>
+            <td class="mono-cell text-muted">{{ s.resolved_ip or '-' }}</td>
+            <td>
+              {% if s.status == 'completed' %}
+                {% if s.host_status == 'up' %}
+                  <span class="badge badge-up">UP</span>
+                {% else %}
+                  <span class="badge badge-down">{{ s.host_status|upper }}</span>
+                {% endif %}
+              {% elif s.status == 'running' %}
+                <span class="badge badge-running">RUNNING</span>
+              {% elif s.status == 'queued' %}
+                <span class="badge badge-queued">QUEUED</span>
+              {% else %}
+                <span class="badge badge-failed">FAILED</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if s.status == 'completed' and s.host_status == 'up' %}
+                <span class="badge badge-category" style="color: var(--accent-cyan); font-weight: 700;">{{ s.open_ports_count }}</span>
+              {% else %}
+                <span class="text-dim">-</span>
+              {% endif %}
+            </td>
+            <td class="mono-cell">{{ "%.1f"|format(s.duration) }}s</td>
+            <td class="text-muted" style="font-size: 12px;">{{ s.created_at }}</td>
+            <td>
+              <div style="display: flex; gap: 6px;">
+                {% if s.txt_report_path %}
+                  <a href="{{ url_for('pages.download_report', scan_id=s.scan_id, format='txt') }}" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px;" title="Download Text Report">
+                    TXT
+                  </a>
+                {% endif %}
+                {% if s.json_report_path %}
+                  <a href="{{ url_for('pages.download_report', scan_id=s.scan_id, format='json') }}" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px;" title="Download JSON Report">
+                    JSON
+                  </a>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <a href="{{ url_for('pages.scan_details', scan_id=s.scan_id) }}" class="btn btn-secondary btn-sm" style="padding: 4px 10px;">
+                Inspect
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="9">
+              <div class="empty-state">
+                <p>No historical scans found.</p>
+                <p style="font-size: 12px;">Launch a new scan from the dashboard to populate history.</p>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Instant search / filter for history table
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('history-search');
+    const tbody = document.getElementById('history-tbody');
+    if (!searchInput || !tbody) return;
+
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const rows = tbody.querySelectorAll('tr');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(q) ? '' : 'none';
+      });
+    });
+  });
+</script>
+{% endblock %}
